@@ -2,10 +2,10 @@ Playing around with Google's gopacket package.
 
 testWifiMonitorPcap(...) can be used to take a monitor mode packet capture on MacOS. It automatically goes through all the 2.4GHz channels and saves frames on a .pcap file. Run with --nopcap flag to only see statistics about frames seen on different channels, example:
 
+```
 Current channel: 5
 Total Frames Seen: 68992
 
-```
 Channel 1	frames: 16189	mon for 40.014687502s
 Channel 2	frames: 3814	mon for 40.009432728s
 Channel 3	frames: 2346	mon for 40.024715095s
