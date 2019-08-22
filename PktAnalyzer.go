@@ -34,6 +34,8 @@ func main() {
 	// 	printDevInfo(device)
 	// }
 
+	// testWiredPcap("lo0")
+
 	listChannelStats := make([]ChannelStats, 13, 13)
 
 	// initialise things
@@ -51,7 +53,7 @@ func testWifiMonitorPcap(chStatsRef []ChannelStats, args []string) {
 	timeout := 10 * time.Second
 	packetCount := 0 // number of packets captured
 	currChannel := 1 // current wireless channel being monitored
-	chSwitchTimer := time.Millisecond * 1000
+	chSwitchTimer := time.Millisecond * 5000
 
 	takePcap := processInputArgs(args)
 	// pktChan := make(chan gopacket.Packet, 1000)
@@ -99,6 +101,7 @@ func testWifiMonitorPcap(chStatsRef []ChannelStats, args []string) {
 			}
 			t2 := time.Now()
 			chStatsRef[prevChannel-1].MonitoredTime += t2.Sub(t1)
+
 			changeMacOSMonitorModeChannel(currChannel, pcapIface)
 
 		}
@@ -109,20 +112,25 @@ func testWifiMonitorPcap(chStatsRef []ChannelStats, args []string) {
 	fmt.Println("Started capturing WiFI frames")
 
 	changeMacOSMonitorModeChannel(currChannel, pcapIface) // make sure airport starts on channel 1
-
+	packetSource.NoCopy = true
 	for packet := range packetSource.Packets() {
 		// fmt.Println(packet)
 		if takePcap {
 			w.WritePacket(packet.Metadata().CaptureInfo, packet.Data()) // save packet
 		}
 		packetCount++
+		// fmt.Println(packetCount)
 		// pktChan <- packet
 
 		chStatsRef[currChannel-1].FramesSeen++
 
 	}
 
+	// time.Sleep(time.Second * 100)
+
 }
+
+// func chooseNextWifiChannel(method string, )
 
 func showChannelStats(ref []ChannelStats, currChan *int, totalFramesSeen *int) {
 	// display wifi channel statistics collected so far
@@ -138,8 +146,8 @@ func showChannelStats(ref []ChannelStats, currChan *int, totalFramesSeen *int) {
 		// show statistics about channels
 		for i := 0; i < len(ref); i++ {
 			fmt.Printf("Channel %d", ref[i].ChanNum)
-			fmt.Printf("\tframes seen: %d", ref[i].FramesSeen)
-			fmt.Printf("\tmonitored for %s", ref[i].MonitoredTime.String())
+			fmt.Printf("\tframes: %d", ref[i].FramesSeen)
+			fmt.Printf("\tmon for %s", ref[i].MonitoredTime.String())
 			fmt.Printf("\n")
 		}
 
@@ -213,14 +221,6 @@ func changeMacOSMonitorModeChannel(wifiChan int, ifName string) bool {
 		log.Printf("removeCapFiles() failed, err: %v", err)
 	}
 
-	// run "airport -I | grep channel" to show current channel
-	// time.Sleep(time.Millisecond * 5)
-	// airArgs := []string{"-I", "| grep channel"}
-	// cmdA := exec.Command("airport", airArgs...)
-	// outA, _ := cmdA.Output()
-	// fmt.Println(cmdA)
-	// log.Printf("%s\t", outA)
-
 	log.Printf("DONE\n")
 	return true
 }
@@ -252,10 +252,10 @@ func removeCapFiles(dirName string) (bool, error) {
 	return true, nil
 }
 
-func testWiredPcap() {
+func testWiredPcap(iface string) {
 	// test pcap on a wired interface, i.e. Ethernet
 	// declare some variables
-	pcapIface := "en0"
+	pcapIface := iface
 	var snapshotLen int32 = 65535 // consider lowering this to only grab the header
 	promiscuous := false
 	timeout := 30 * time.Second
@@ -288,7 +288,7 @@ func testWiredPcap() {
 		fmt.Printf("packetCount: %d\n", packetCount)
 
 		// stop the capture after a number of packets
-		if packetCount > 100 {
+		if packetCount > 10000 {
 			break
 		}
 	}
