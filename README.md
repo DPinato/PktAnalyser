@@ -21,4 +21,4 @@ Channel 12	frames: 5012	mon for 35.019061602s
 Channel 13	frames: 1222	mon for 35.017535449s
 ```
 
-Note: Apparently on MacOS packetSource.Packets() seem to take over 100% of a CPU core.
+Note: On MacOS, packetSource.Packets() seem to take over 100% of a CPU core.
